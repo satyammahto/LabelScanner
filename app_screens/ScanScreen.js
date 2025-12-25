@@ -3,6 +3,7 @@ import { CameraView, useCameraPermissions } from 'expo-camera';
 import * as ImagePicker from 'expo-image-picker';
 import { useRef, useState } from 'react';
 import { ActivityIndicator, Alert, StatusBar, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { COLORS, FONTS } from '../constants/theme.js';
 
 export default function ScanScreen({ navigation }) {
   const [permission, requestPermission] = useCameraPermissions();
@@ -15,7 +16,7 @@ export default function ScanScreen({ navigation }) {
   if (!permission.granted) {
     return (
       <View style={[styles.container, styles.centerContent]}>
-        <MaterialIcons name="no-photography" size={64} color="#666" />
+        <MaterialIcons name="no-photography" size={64} color={COLORS.textSecondary} />
         <Text style={styles.permissionText}>Camera access is needed to scan labels.</Text>
         <TouchableOpacity style={styles.permissionButton} onPress={requestPermission}>
           <Text style={styles.permissionButtonText}>Enable Camera</Text>
@@ -91,12 +92,12 @@ export default function ScanScreen({ navigation }) {
 
       {/* Top Controls (Close & Flash) */}
       <View style={styles.topControls}>
-        <TouchableOpacity style={styles.iconButton} onPress={() => navigation.navigate('Today')}>
+        <TouchableOpacity style={styles.iconButton} onPress={() => navigation.navigate('Home')}>
           <MaterialIcons name="close" size={28} color="#fff" />
         </TouchableOpacity>
 
         <TouchableOpacity style={styles.iconButton} onPress={() => setTorch(!torch)}>
-          <Ionicons name={torch ? "flash" : "flash-off"} size={24} color={torch ? "#f1c40f" : "#fff"} />
+          <Ionicons name={torch ? "flash" : "flash-off"} size={24} color={torch ? COLORS.warning : "#fff"} />
         </TouchableOpacity>
       </View>
 
@@ -110,7 +111,7 @@ export default function ScanScreen({ navigation }) {
         {/* Shutter Button */}
         <TouchableOpacity style={styles.shutterButtonOuter} onPress={handleCapture} disabled={loading}>
           <View style={styles.shutterButtonInner}>
-            {loading && <ActivityIndicator size="small" color="#208091" />}
+            {loading && <ActivityIndicator size="small" color={COLORS.primary} />}
           </View>
         </TouchableOpacity>
 
@@ -127,9 +128,9 @@ const styles = StyleSheet.create({
   blackBg: { flex: 1, backgroundColor: '#000' },
   container: { flex: 1, backgroundColor: '#000' },
   centerContent: { justifyContent: 'center', alignItems: 'center', padding: 20 },
-  permissionText: { color: '#fff', fontSize: 16, marginTop: 16, textAlign: 'center', opacity: 0.8 },
-  permissionButton: { marginTop: 20, backgroundColor: '#208091', paddingVertical: 12, paddingHorizontal: 24, borderRadius: 8 },
-  permissionButtonText: { color: '#fff', fontWeight: 'bold' },
+  permissionText: { color: '#fff', fontSize: 16, marginTop: 16, textAlign: 'center', opacity: 0.8, fontFamily: FONTS.regular },
+  permissionButton: { marginTop: 20, backgroundColor: COLORS.primary, paddingVertical: 12, paddingHorizontal: 24, borderRadius: 8 },
+  permissionButtonText: { color: '#fff', fontFamily: FONTS.bold },
 
   camera: { ...StyleSheet.absoluteFillObject },
 
@@ -141,13 +142,13 @@ const styles = StyleSheet.create({
   focusFrame: { width: 280, height: 280, backgroundColor: 'transparent' },
   overlayBottom: { flex: 1, backgroundColor: 'rgba(0,0,0,0.6)', alignItems: 'center', paddingTop: 20 },
 
-  instructionText: { color: '#fff', fontSize: 14, fontWeight: '500', opacity: 0.9, textShadowColor: 'rgba(0,0,0,0.5)', textShadowRadius: 4 },
+  instructionText: { color: '#fff', fontSize: 14, fontFamily: FONTS.semiBold, opacity: 0.9, textShadowColor: 'rgba(0,0,0,0.5)', textShadowRadius: 4 },
 
   // Frame Corners
-  cornerTL: { position: 'absolute', top: 0, left: 0, width: 40, height: 40, borderTopWidth: 4, borderLeftWidth: 4, borderColor: '#208091', borderTopLeftRadius: 16 },
-  cornerTR: { position: 'absolute', top: 0, right: 0, width: 40, height: 40, borderTopWidth: 4, borderRightWidth: 4, borderColor: '#208091', borderTopRightRadius: 16 },
-  cornerBL: { position: 'absolute', bottom: 0, left: 0, width: 40, height: 40, borderBottomWidth: 4, borderLeftWidth: 4, borderColor: '#208091', borderBottomLeftRadius: 16 },
-  cornerBR: { position: 'absolute', bottom: 0, right: 0, width: 40, height: 40, borderBottomWidth: 4, borderRightWidth: 4, borderColor: '#208091', borderBottomRightRadius: 16 },
+  cornerTL: { position: 'absolute', top: 0, left: 0, width: 40, height: 40, borderTopWidth: 4, borderLeftWidth: 4, borderColor: COLORS.primary, borderTopLeftRadius: 16 },
+  cornerTR: { position: 'absolute', top: 0, right: 0, width: 40, height: 40, borderTopWidth: 4, borderRightWidth: 4, borderColor: COLORS.primary, borderTopRightRadius: 16 },
+  cornerBL: { position: 'absolute', bottom: 0, left: 0, width: 40, height: 40, borderBottomWidth: 4, borderLeftWidth: 4, borderColor: COLORS.primary, borderBottomLeftRadius: 16 },
+  cornerBR: { position: 'absolute', bottom: 0, right: 0, width: 40, height: 40, borderBottomWidth: 4, borderRightWidth: 4, borderColor: COLORS.primary, borderBottomRightRadius: 16 },
 
   // UI Controls
   topControls: {

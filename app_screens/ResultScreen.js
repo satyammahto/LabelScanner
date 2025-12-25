@@ -1,11 +1,13 @@
 import { Ionicons, MaterialIcons } from '@expo/vector-icons';
 import * as FileSystem from 'expo-file-system/legacy';
+import * as Haptics from 'expo-haptics';
 import { LinearGradient } from 'expo-linear-gradient';
 import { get, push, ref, serverTimestamp } from 'firebase/database';
 import { useEffect, useState } from 'react';
 import {
   ActivityIndicator,
   Alert,
+  Dimensions,
   ImageBackground,
   ScrollView,
   Share,
@@ -13,10 +15,13 @@ import {
   Text,
   TextInput,
   TouchableOpacity,
-  View,
+  View
 } from 'react-native';
+import { COLORS, FONTS, SHADOWS, SPACING } from '../constants/theme.js';
 import { auth, database } from '../services/firebaseConfig';
 import { analyzeImageWithGemini } from '../services/geminiService';
+
+const { height } = Dimensions.get('window');
 
 export default function ResultScreen({ route, navigation }) {
   const [loading, setLoading] = useState(false);
@@ -61,9 +66,12 @@ export default function ResultScreen({ route, navigation }) {
       if (data) {
         setAnalysis(data);
         if (data.productName) setProductName(data.productName);
+        Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
       }
     } catch (error) {
       console.error("Process Image Error:", error);
+      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
+
       if (error.message.includes('429')) {
         Alert.alert('Quota Exceeded', 'You are scanning too fast! Please wait a moment and try again.');
       } else {
@@ -80,6 +88,8 @@ export default function ResultScreen({ route, navigation }) {
       return;
     }
 
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+
     try {
       const user = auth.currentUser;
       if (!user) {
@@ -95,8 +105,8 @@ export default function ResultScreen({ route, navigation }) {
         imageUri,
       });
 
-      Alert.alert('Success', 'Saved to your food log!');
-      navigation.navigate('Today');
+      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+      navigation.navigate('Home');
     } catch (error) {
       Alert.alert('Error', 'Failed to save to Firebase.');
     }
@@ -114,16 +124,16 @@ export default function ResultScreen({ route, navigation }) {
 
   // Helper for colors
   const getScoreColor = (score) => {
-    if (score >= 75) return '#27ae60';
-    if (score >= 40) return '#f39c12';
-    return '#e74c3c';
+    if (score >= 75) return COLORS.success;
+    if (score >= 40) return COLORS.warning;
+    return COLORS.error;
   };
 
   // Case 1: Accessed via Tab Bar (No Image)
   if (!imageUri && !savedAnalysis) {
     return (
       <View style={styles.emptyContainer}>
-        <MaterialIcons name="qr-code-scanner" size={64} color="#ccc" />
+        <MaterialIcons name="qr-code-scanner" size={64} color={COLORS.textLight} />
         <Text style={styles.emptyText}>No label scanned yet</Text>
         <TouchableOpacity style={styles.retryBtn} onPress={() => navigation.navigate('Scan')}>
           <Text style={styles.retryText}>Start Scanning</Text>
@@ -136,13 +146,13 @@ export default function ResultScreen({ route, navigation }) {
   if (!analysis && !loading) {
     return (
       <View style={styles.emptyContainer}>
-        <MaterialIcons name="broken-image" size={64} color="#ccc" />
+        <MaterialIcons name="broken-image" size={64} color={COLORS.textLight} />
         <Text style={styles.emptyText}>Analysis failed</Text>
         <TouchableOpacity style={styles.retryBtn} onPress={() => processImage(imageUri)}>
           <Text style={styles.retryText}>Try Again</Text>
         </TouchableOpacity>
         <TouchableOpacity onPress={() => navigation.goBack()} style={{ marginTop: 20 }}>
-          <Text style={{ color: '#666' }}>Go Back</Text>
+          <Text style={{ color: COLORS.textSecondary }}>Go Back</Text>
         </TouchableOpacity>
       </View>
     );
@@ -151,7 +161,7 @@ export default function ResultScreen({ route, navigation }) {
   if (loading) {
     return (
       <View style={styles.centerContainer}>
-        <ActivityIndicator size="large" color="#208091" />
+        <ActivityIndicator size="large" color={COLORS.primary} />
         <Text style={styles.loadingText}>Analyzing Label...</Text>
         <Text style={styles.loadingSubText}>This may take a few seconds</Text>
       </View>
@@ -161,183 +171,182 @@ export default function ResultScreen({ route, navigation }) {
   const scoreColor = getScoreColor(analysis.healthScore);
 
   return (
-    <View style={{ flex: 1, backgroundColor: '#f4f6f8' }}>
-      <ScrollView style={styles.container} showsVerticalScrollIndicator={false} bounces={false}>
+    <View style={{ flex: 1, backgroundColor: '#000' }}>
+      {/* Hero Image as Background */}
+      <ImageBackground source={{ uri: imageUri }} style={styles.heroBackground} resizeMode="cover">
+        <LinearGradient colors={['rgba(0,0,0,0.3)', 'rgba(0,0,0,0.6)']} style={styles.heroGradient}>
+          <View style={styles.headerNav}>
+            <TouchableOpacity onPress={() => navigation.goBack()} style={styles.iconBtn}>
+              <Ionicons name="arrow-back" size={24} color="#fff" />
+            </TouchableOpacity>
+            <TouchableOpacity onPress={shareResult} style={styles.iconBtn}>
+              <Ionicons name="share-social-outline" size={24} color="#fff" />
+            </TouchableOpacity>
+          </View>
+        </LinearGradient>
+      </ImageBackground>
 
-        {/* Hero Section */}
-        <ImageBackground source={{ uri: imageUri }} style={styles.heroBackground} blurRadius={10}>
-          <LinearGradient colors={['rgba(0,0,0,0.3)', 'rgba(0,0,0,0.8)']} style={styles.heroGradient}>
+      {/* Sheet Content */}
+      <View style={styles.sheetContainer}>
+        <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 40 }}>
 
-            {/* Header Nav */}
-            <View style={styles.headerNav}>
-              <TouchableOpacity onPress={() => navigation.goBack()} style={styles.iconBtn}>
-                <Ionicons name="arrow-back" size={24} color="#fff" />
-              </TouchableOpacity>
-              <TouchableOpacity onPress={shareResult} style={styles.iconBtn}>
-                <Ionicons name="share-social-outline" size={24} color="#fff" />
-              </TouchableOpacity>
+          {/* Header Section in Sheet */}
+          <View style={styles.sheetHeader}>
+            <View style={[styles.scoreRing, { borderColor: scoreColor }]}>
+              <Text style={[styles.scoreValue, { color: scoreColor }]}>{analysis.healthScore}</Text>
             </View>
-
-            {/* Score Display */}
-            <View style={styles.heroContent}>
-              <View style={[styles.scoreCircle, { borderColor: scoreColor }]}>
-                <Text style={[styles.scoreValue, { color: scoreColor }]}>{analysis.healthScore}</Text>
-                <Text style={styles.scoreLabel}>Health Score</Text>
-              </View>
-
-              {/* Editable Name */}
-              <View style={styles.nameContainer}>
+            <View style={{ flex: 1 }}>
+              <View style={styles.nameRow}>
                 <TextInput
                   style={styles.nameInput}
                   value={productName}
                   onChangeText={setProductName}
-                  placeholderTextColor="rgba(255,255,255,0.6)"
+                  placeholder="Product Name"
+                  placeholderTextColor={COLORS.textLight}
+                  multiline
                 />
-                <MaterialIcons name="edit" size={16} color="rgba(255,255,255,0.6)" style={{ marginLeft: 8 }} />
+                <MaterialIcons name="edit" size={16} color={COLORS.textLight} />
               </View>
-
-              <View style={[styles.statusBadge, { backgroundColor: analysis.vegetarianStatus.toLowerCase().includes('non') ? '#e74c3c' : '#27ae60' }]}>
-                <Text style={styles.statusText}>{analysis.vegetarianStatus}</Text>
+              <View style={[styles.statusBadge, { backgroundColor: analysis.vegetarianStatus.toLowerCase().includes('non') ? '#FEF2F2' : '#ECFDF5' }]}>
+                <Text style={[styles.statusText, { color: analysis.vegetarianStatus.toLowerCase().includes('non') ? COLORS.error : COLORS.success }]}>
+                  {analysis.vegetarianStatus}
+                </Text>
               </View>
             </View>
+          </View>
 
-          </LinearGradient>
-        </ImageBackground>
+          <View style={styles.divider} />
 
-        <View style={styles.contentContainer}>
-
-          {/* AI Insight Card */}
-          <View style={styles.card}>
-            <View style={styles.cardHeader}>
-              <MaterialIcons name="auto-awesome" size={24} color="#208091" />
-              <Text style={styles.cardTitle}>AI Assessment</Text>
-            </View>
-            <Text style={styles.insightText}>{analysis.healthInsight}</Text>
+          {/* Insight Card */}
+          <View style={styles.insightBox}>
+            <MaterialIcons name="auto-awesome" size={24} color={COLORS.primary} style={{ marginBottom: 8 }} />
+            <Text style={styles.insightText}>"{analysis.healthInsight}"</Text>
           </View>
 
           {/* Nutrition Grid */}
-          <View style={styles.card}>
-            <View style={styles.cardHeader}>
-              <Ionicons name="nutrition" size={22} color="#208091" />
-              <Text style={styles.cardTitle}>Nutrition Facts</Text>
+          <Text style={styles.sectionTitle}>Nutrition Facts</Text>
+          <View style={styles.gridContainer}>
+            <View style={styles.gridItem}>
+              <Text style={styles.gridValue}>{analysis.calories}</Text>
+              <Text style={styles.gridLabel}>Calories</Text>
             </View>
-            <View style={styles.nutritionRow}>
-              <View style={styles.nutrientBox}>
-                <Text style={styles.nutrientVal}>{analysis.calories}</Text>
-                <Text style={styles.nutrientLbl}>Calories</Text>
-              </View>
-              <View style={styles.nutrientBox}>
-                <Text style={styles.nutrientVal}>{analysis.protein}g</Text>
-                <Text style={styles.nutrientLbl}>Protein</Text>
-              </View>
-              <View style={styles.nutrientBox}>
-                <Text style={styles.nutrientVal}>{analysis.totalFat}g</Text>
-                <Text style={styles.nutrientLbl}>Fats</Text>
-              </View>
-              <View style={styles.nutrientBox}>
-                <Text style={styles.nutrientVal}>{analysis.sugar?.labelSugar || '-'}g</Text>
-                <Text style={styles.nutrientLbl}>Sugar</Text>
-              </View>
+            <View style={styles.gridItem}>
+              <Text style={styles.gridValue}>{analysis.protein}g</Text>
+              <Text style={styles.gridLabel}>Protein</Text>
+            </View>
+            <View style={styles.gridItem}>
+              <Text style={styles.gridValue}>{analysis.totalFat}g</Text>
+              <Text style={styles.gridLabel}>Fat</Text>
+            </View>
+            <View style={styles.gridItem}>
+              <Text style={styles.gridValue}>{analysis.sugar?.labelSugar || '-'}g</Text>
+              <Text style={styles.gridLabel}>Sugar</Text>
             </View>
           </View>
 
-          {/* Warnings Section (Dynamic) */}
+          {/* Warnings */}
           {(analysis.preservatives?.length > 0 || analysis.additives?.length > 0 || analysis.sugar?.estimatedTotalSugar > 10) && (
-            <View style={styles.card}>
-              <View style={styles.cardHeader}>
-                <MaterialIcons name="warning" size={22} color="#e67e22" />
-                <Text style={styles.cardTitle}>Watch Out</Text>
+            <View style={styles.warningCard}>
+              <View style={styles.warningHeader}>
+                <MaterialIcons name="warning" size={20} color={COLORS.warning} />
+                <Text style={styles.warningTitle}>Watch Out</Text>
               </View>
 
-              {/* High Sugar Warning */}
               {analysis.sugar?.estimatedTotalSugar > 10 && (
-                <View style={styles.warningRow}>
-                  <MaterialIcons name="subdirectory-arrow-right" size={18} color="#e74c3c" />
-                  <Text style={styles.warningText}>High Sugar Content (~{analysis.sugar.estimatedTotalSugar}g)</Text>
-                </View>
+                <Text style={styles.warningItem}>• High Sugar Content (~{analysis.sugar.estimatedTotalSugar}g)</Text>
               )}
 
-              {/* Additives */}
               {analysis.additives?.map((item, i) => (
-                <View key={i} style={styles.warningRow}>
-                  <MaterialIcons name="science" size={18} color="#8e44ad" />
-                  <View style={{ flex: 1 }}>
-                    <Text style={styles.warningText}>{item.name}</Text>
-                    <Text style={styles.warningSub}>{item.concern}</Text>
-                  </View>
+                <View key={i} style={{ marginTop: 8 }}>
+                  <Text style={styles.warningItem}>• {item.name}</Text>
+                  <Text style={styles.warningSub}>{item.concern}</Text>
                 </View>
               ))}
             </View>
           )}
 
-          {/* Save Button (Only if not already saved) */}
+          {/* Save Button */}
           {!savedAnalysis && (
             <TouchableOpacity style={styles.saveBtn} onPress={saveToLog}>
-              <LinearGradient colors={['#208091', '#16a085']} style={styles.saveGradient} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }}>
+              <LinearGradient colors={[COLORS.gradientStart, COLORS.gradientEnd]} style={styles.saveGradient}>
                 <Text style={styles.saveBtnText}>Save to Diary</Text>
-                <MaterialIcons name="check" size={20} color="#fff" />
               </LinearGradient>
             </TouchableOpacity>
           )}
 
-        </View>
-        <View style={{ height: 40 }} />
-      </ScrollView>
+        </ScrollView>
+      </View>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1 },
-  centerContainer: { flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: '#fff' },
-  emptyContainer: { flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: '#fff' },
-  emptyText: { fontSize: 16, color: '#666', marginTop: 16 },
-  retryBtn: { marginTop: 16, padding: 12, backgroundColor: '#208091', borderRadius: 8 },
-  retryText: { color: '#fff', fontWeight: '600' },
-  loadingText: { marginTop: 20, fontSize: 18, fontWeight: '600', color: '#208091' },
-  loadingSubText: { marginTop: 8, fontSize: 14, color: '#999' },
+  centerContainer: { flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: COLORS.background },
+  emptyContainer: { flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: COLORS.background },
+  emptyText: { fontSize: 16, color: COLORS.textSecondary, marginTop: 16, fontFamily: FONTS.regular },
+  retryBtn: { marginTop: 16, padding: 12, backgroundColor: COLORS.primary, borderRadius: 8 },
+  retryText: { color: COLORS.surface, fontFamily: FONTS.semiBold },
+  loadingText: { marginTop: 20, fontSize: 18, fontFamily: FONTS.semiBold, color: COLORS.primary },
+  loadingSubText: { marginTop: 8, fontSize: 14, color: COLORS.textLight, fontFamily: FONTS.regular },
 
-  // Hero
-  heroBackground: { width: '100%', height: 380 },
-  heroGradient: { flex: 1, justifyContent: 'space-between', padding: 20, paddingBottom: 40 },
-  headerNav: { marginTop: 40, flexDirection: 'row', justifyContent: 'space-between' },
-  iconBtn: { padding: 8, backgroundColor: 'rgba(255,255,255,0.2)', borderRadius: 20 },
+  // Layout
+  heroBackground: { width: '100%', height: height * 0.45, position: 'absolute', top: 0 },
+  heroGradient: { flex: 1 },
+  headerNav: { marginTop: 50, flexDirection: 'row', justifyContent: 'space-between', paddingHorizontal: 20 },
+  iconBtn: { padding: 8, backgroundColor: 'rgba(0,0,0,0.3)', borderRadius: 20 },
 
-  heroContent: { alignItems: 'center' },
-  scoreCircle: {
-    width: 120, height: 120, borderRadius: 60, backgroundColor: '#fff',
-    justifyContent: 'center', alignItems: 'center', borderWidth: 6, marginBottom: 16,
-    shadowColor: '#000', shadowOpacity: 0.3, shadowRadius: 10, elevation: 10
+  sheetContainer: {
+    marginTop: height * 0.35,
+    backgroundColor: COLORS.surface,
+    borderTopLeftRadius: 32,
+    borderTopRightRadius: 32,
+    flex: 1,
+    paddingHorizontal: SPACING.l,
+    paddingTop: SPACING.xl,
+    ...SHADOWS.lg,
   },
-  scoreValue: { fontSize: 42, fontWeight: '800' },
-  scoreLabel: { fontSize: 10, color: '#777', textTransform: 'uppercase', marginTop: 0 },
 
-  nameContainer: { flexDirection: 'row', alignItems: 'center', borderBottomWidth: 1, borderBottomColor: 'rgba(255,255,255,0.3)', paddingBottom: 8, marginBottom: 12 },
-  nameInput: { fontSize: 22, fontWeight: '700', color: '#fff', textAlign: 'center', minWidth: 100 },
-
-  statusBadge: { paddingHorizontal: 16, paddingVertical: 6, borderRadius: 20 },
-  statusText: { color: '#fff', fontWeight: '700', fontSize: 12, textTransform: 'uppercase' },
-
-  // Content
-  contentContainer: { padding: 20, marginTop: -30 },
-  card: {
-    backgroundColor: '#fff', borderRadius: 16, padding: 20, marginBottom: 16,
-    shadowColor: '#000', shadowOpacity: 0.05, shadowRadius: 8, shadowOffset: { width: 0, height: 4 }, elevation: 3
+  sheetHeader: { flexDirection: 'row', alignItems: 'center', marginBottom: SPACING.l },
+  scoreRing: {
+    width: 80, height: 80, borderRadius: 40, borderWidth: 6,
+    justifyContent: 'center', alignItems: 'center',
+    marginRight: SPACING.m
   },
-  cardHeader: { flexDirection: 'row', alignItems: 'center', marginBottom: 16, gap: 8 },
-  cardTitle: { fontSize: 16, fontWeight: '700', color: '#333' },
-  insightText: { fontSize: 14, color: '#444', lineHeight: 22 },
+  scoreValue: { fontSize: 28, fontFamily: FONTS.bold },
 
-  nutritionRow: { flexDirection: 'row', justifyContent: 'space-between' },
-  nutrientBox: { alignItems: 'center', flex: 1 },
-  nutrientVal: { fontSize: 18, fontWeight: '700', color: '#208091' },
-  nutrientLbl: { fontSize: 12, color: '#888', marginTop: 4 },
+  nameRow: { flexDirection: 'row', alignItems: 'center', flexWrap: 'wrap', marginBottom: 6 },
+  nameInput: { fontSize: 20, fontFamily: FONTS.bold, color: COLORS.textPrimary, flex: 1, marginRight: 4, minHeight: 30 },
 
-  warningRow: { flexDirection: 'row', gap: 12, marginTop: 12, alignItems: 'flex-start' },
-  warningText: { fontSize: 14, color: '#c0392b', fontWeight: '600' },
-  warningSub: { fontSize: 12, color: '#7f8c8d' },
+  statusBadge: { paddingHorizontal: 10, paddingVertical: 4, borderRadius: 12, alignSelf: 'flex-start' },
+  statusText: { fontSize: 12, fontFamily: FONTS.semiBold, textTransform: 'uppercase' },
 
-  saveBtn: { borderRadius: 16, overflow: 'hidden', marginTop: 8 },
-  saveGradient: { padding: 18, flexDirection: 'row', justifyContent: 'center', alignItems: 'center', gap: 8 },
-  saveBtnText: { color: '#fff', fontWeight: 'bold', fontSize: 16 }
+  divider: { height: 1, backgroundColor: COLORS.border, marginBottom: SPACING.l },
+
+  insightBox: {
+    backgroundColor: '#F0FDFA', padding: SPACING.m, borderRadius: 16, marginBottom: SPACING.l,
+    borderLeftWidth: 4, borderLeftColor: COLORS.primary
+  },
+  insightText: { fontSize: 15, fontFamily: FONTS.regular, color: COLORS.textSecondary, fontStyle: 'italic', lineHeight: 22 },
+
+  sectionTitle: { fontSize: 18, fontFamily: FONTS.bold, color: COLORS.textPrimary, marginBottom: SPACING.m },
+
+  gridContainer: { flexDirection: 'row', justifyContent: 'space-between', marginBottom: SPACING.l, gap: 8 },
+  gridItem: {
+    flex: 1, backgroundColor: COLORS.background, padding: SPACING.s, borderRadius: 12, alignItems: 'center'
+  },
+  gridValue: { fontSize: 16, fontFamily: FONTS.bold, color: COLORS.textPrimary },
+  gridLabel: { fontSize: 12, fontFamily: FONTS.regular, color: COLORS.textSecondary, marginTop: 2 },
+
+  warningCard: {
+    backgroundColor: '#FFFBEB', padding: SPACING.m, borderRadius: 16, marginBottom: SPACING.l,
+    borderWidth: 1, borderColor: '#FCD34D'
+  },
+  warningHeader: { flexDirection: 'row', alignItems: 'center', marginBottom: 8, gap: 6 },
+  warningTitle: { fontSize: 14, fontFamily: FONTS.semiBold, color: '#B45309' },
+  warningItem: { fontSize: 14, fontFamily: FONTS.regular, color: '#92400E', marginBottom: 4 },
+  warningSub: { fontSize: 12, color: '#B45309', marginLeft: 10, fontStyle: 'italic' },
+
+  saveBtn: { borderRadius: 16, overflow: 'hidden', marginTop: SPACING.s, marginBottom: 40 },
+  saveGradient: { padding: 16, alignItems: 'center' },
+  saveBtnText: { color: COLORS.surface, fontFamily: FONTS.bold, fontSize: 16 }
 });
