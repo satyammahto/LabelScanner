@@ -241,7 +241,9 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 12,
-    marginBottom: 20
+    marginBottom: 20,
+    marginTop: 40, // Ensure it's not too close to top
+    paddingVertical: 10 // Add padding to avoid clipping animation
   },
   appName: {
     fontSize: 34,

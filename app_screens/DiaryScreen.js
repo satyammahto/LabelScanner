@@ -239,9 +239,15 @@ export default function DiaryScreen({ navigation, route }) {
                                     </Body>
                                     {item.count === 1 && <MaterialIcons name="restaurant" size={16} color={colors.primary} />}
                                 </View>
-                                <View>
-                                    <Body style={{ fontWeight: '600', color: colors.text.primary }}>{item.productName}</Body>
-                                    <Label style={{ fontSize: 11, color: colors.text.muted }}>
+                                <View style={{ flex: 1, paddingRight: 8 }}>
+                                    <Body
+                                        style={{ fontWeight: '600', color: colors.text.primary, lineHeight: 20 }}
+                                        numberOfLines={2}
+                                        ellipsizeMode="tail"
+                                    >
+                                        {item.productName}
+                                    </Body>
+                                    <Label style={{ fontSize: 11, color: colors.text.muted, marginTop: 2 }}>
                                         {Math.round(item.totalCalories)} kcal {item.count > 1 ? `(${item.calories} ea)` : ''} • {item.protein}g P
                                     </Label>
                                 </View>

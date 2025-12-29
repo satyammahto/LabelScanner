@@ -45,8 +45,8 @@ Schema:
   "productName": "short name",
   "vegetarianStatus": "Vegetarian / Non-Vegetarian / Vegan / Unclear",
   "healthScore": number (0-100) (Based on safety/clarity/necessity checking. 100 = Safe/Clear, 50 = Caution),
-  "healthInsight": "Usage purpose (e.g. 'Pain relief', 'Vitamin C')",
-  "scoreExplanation": "Safety verdict or key usage note.",
+  "healthInsight": "Simple primary use (e.g. 'Pain Relief', 'Immunity', 'Sleep Aid'). Max 3 words.",
+  "scoreExplanation": "Explain simply in one sentence what this medicine matches/does. Use plain English, no complex medical terms. (e.g. 'Helps reduce fever and mild pain' or 'Provides Vitamin C for immune support').",
   "activeIngredients": ["list of main drugs/vitamins e.g. 'Paracetamol 500mg'"],
   "dosage": "Recommended dosage if visible (e.g. '1 tablet every 6 hours')",
   "usageInstructions": "Brief usage instructions",
@@ -73,6 +73,7 @@ Rules:
 - Return ONLY valid JSON.
 - If unsure of type, default to Food schema but set productType="Unknown".
 - Ensure no markdown formatting or backticks.
+- FOR MEDICINE: Write the 'scoreExplanation' and 'healthInsight' in very simple, non-technical language. Explain it like I'm 12 years old.
 `,
               },
               {
