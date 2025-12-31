@@ -1,50 +1,101 @@
-# Welcome to your Expo app 👋
+# 🥗 NutriScan
+> **Know What You Eat, Instantly.**
 
-This is an [Expo](https://expo.dev) project created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
+[![Download APK](https://img.shields.io/badge/Download-APK-00C853?style=for-the-badge&logo=android&logoColor=white)](https://expo.dev/accounts/satyammah/projects/nutriscanner/builds/f6b088c8-9fe1-4b41-b296-33108b7b01a0)
 
-## Get started
+[![Built with Expo](https://img.shields.io/badge/Built%20with-Expo-000.svg?style=flat&logo=expo&logoColor=white)](https://expo.dev/)
+[![Powered by Gemini](https://img.shields.io/badge/AI-Google%20Gemini%203.0-8E75B2.svg?style=flat&logo=google&logoColor=white)](https://deepmind.google/technologies/gemini/)
+[![Firebase](https://img.shields.io/badge/Backend-Firebase-FFCA28.svg?style=flat&logo=firebase&logoColor=black)](https://firebase.google.com/)
 
-1. Install dependencies
+---
 
-   ```bash
-   npm install
-   ```
+## 🚀 Overview
+**NutriScan** is an AI-powered mobile assistant that helps you decode complex food labels in seconds. By simply snapping a photo, our app uses **Google's Gemini 3.0 Flash** model to analyze ingredients, identify hidden sugars or allergens, and provide a personalized **Health Score**.
 
-2. Start the app
+Built for **GDG TechSprint**, this project bridges the gap between complex nutritional data and everyday consumer choices.
 
-   ```bash
-   npx expo start
-   ```
+## 🧐 The Problem
+*   **Confusing Labels:** Nutrition tables and ingredient lists are often hard to read and deceptive.
+*   **Hidden Ingredients:** Names like "E102" or "High Fructose Corn Syrup" don't clearly say "Unhealthy" or "Non-Veg".
+*   **Dietary Anxiety:** Vegetarians and Vegans struggle to trust products with vague labeling.
 
-In the output, you'll find options to open the app in a
+## 💡 The Solution
+NutriScan acts as your personal nutritionist.
+1.  **Scan:** Point your camera at any food packet.
+2.  **Process:** The app sends the image to **Gemini AI**, which "reads" the text using advanced OCR and understands context.
+3.  **Result:** You get a simple **Health Score (0-100)**, a clear **Veg/Non-Veg verdict**, and a breakdown of **Additives & Allergens**.
 
-- [development build](https://docs.expo.dev/develop/development-builds/introduction/)
-- [Android emulator](https://docs.expo.dev/workflow/android-studio-emulator/)
-- [iOS simulator](https://docs.expo.dev/workflow/ios-simulator/)
-- [Expo Go](https://expo.dev/go), a limited sandbox for trying out app development with Expo
+---
 
-You can start developing by editing the files inside the **app** directory. This project uses [file-based routing](https://docs.expo.dev/router/introduction).
+## ✨ Key Features
+*   📸 **AI Label Scanning**: No manual entry. Just point and shoot.
+*   🥦 **Smart Classification**: Instantly knows if it's Veg, Non-Veg, or Vegan.
+*   ❤️ **Health Score**: A 0-100 rating based on *your* profile (General Health, Muscle Gain, etc.).
+*   ⚠️ **Smart Warnings**: Alerts for hidden sugars, preservatives, and allergens.
+*   📜 **Scan History**: Keep a diary of everything you've scanned (Delete with a swipe!).
 
-## Get a fresh project
+---
 
-When you're ready, run:
+## 🛠️ Tech Stack
+This project leverages a modern, serverless architecture:
 
-```bash
-npm run reset-project
-```
+| Component | Technology | Role |
+| :--- | :--- | :--- |
+| **Frontend** | **React Native (Expo)** | Cross-platform mobile UI |
+| **AI Brain** | **Google Gemini 3.0 Flash** | OCR, analysis, and scoring logic |
+| **Backend** | **Firebase** | Authentication & Realtime Database |
+| **Networking** | **Axios** | API communication |
 
-This command will move the starter code to the **app-example** directory and create a blank **app** directory where you can start developing.
+---
 
-## Learn more
+## 🔄 Project Workflow
+1.  **User logs in** and sets a profile (e.g., "Vegetarian").
+2.  User taps **"Scan"** and captures a product image.
+3.  App converts image to Base64 and sends it to **Gemini API**.
+4.  **Gemini** analyzes ingredients vs. User Profile.
+5.  App displays **Result Card**: "Health Score: 85 - Good Choice!".
 
-To learn more about developing your project with Expo, look at the following resources:
+---
 
-- [Expo documentation](https://docs.expo.dev/): Learn fundamentals, or go into advanced topics with our [guides](https://docs.expo.dev/guides).
-- [Learn Expo tutorial](https://docs.expo.dev/tutorial/introduction/): Follow a step-by-step tutorial where you'll create a project that runs on Android, iOS, and the web.
+## 🏃‍♂️ Installation & Setup
 
-## Join the community
+1.  **Clone the repository**
+    ```bash
+    git clone https://github.com/Mayuresh-Dasure/LabelScanner.git
+    cd LabelScanner
+    ```
 
-Join our community of developers creating universal apps.
+2.  **Install Dependencies**
+    ```bash
+    npm install
+    ```
 
-- [Expo on GitHub](https://github.com/expo/expo): View our open source platform and contribute.
-- [Discord community](https://chat.expo.dev): Chat with Expo users and ask questions.
+3.  **Setup Environment**
+    Create a `.env` file and add your Google Gemini API Key:
+    ```env
+    EXPO_PUBLIC_GEMINI_API_KEY=your_api_key_here
+    ```
+
+4.  **Run the App**
+    ```bash
+    npx expo start
+    ```
+
+---
+
+## 🔮 Future Enhancements
+*   📊 **Barcode Scanning Integration** for faster lookup.
+*   🗣️ **Multi-language Support** for regional users.
+*   🩺 **Doctor Integration** to share scans with nutritionists.
+
+---
+
+## 🤝 Contribution
+Got ideas? We'd love to hear them!
+1.  Fork the repo.
+2.  Create a feature branch.
+3.  Submit a Pull Request.
+
+---
+
+> **Note for Judges:** This app was built to demonstrate the power of **multimodal AI (Gemini 3.0)** in solving real-world consumer problems.
